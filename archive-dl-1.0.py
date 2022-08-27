@@ -1,5 +1,4 @@
 #! /bin/python
-# A Script that will take a url from Archive.org and find all video files for each item. Then if the -d option is selected it will download the files. If not, it'll place all of the video file urls in a text file.
 
 import sys
 import argparse
@@ -175,17 +174,17 @@ def fileExists(name, dl_url):
         file.close()
         return
         
-        #yes = set(['yes','y'])
-        #no = set(['no','n',''])
+        yes = set(['yes','y'])
+        no = set(['no','n',''])
         
-        #while True:
-        #    ans=input("File " + name + " already exists. Overwrite? N/y ").lower()
-        #    if ans in yes:
-        #        downloadFile(name, dl_url)
-        #    elif ans in no:
-        #        return
-        #    else:
-        #        print('Yes or No?')
+        while True:
+            ans=input("File " + name + " already exists. Overwrite? N/y ").lower()
+            if ans in yes:
+                downloadFile(name, dl_url)
+            elif ans in no:
+                return
+            else:
+                print('Yes or No?')
     except FileNotFoundError:
         downloadFile(name, dl_url)
 

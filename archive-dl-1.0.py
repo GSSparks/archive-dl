@@ -1,5 +1,6 @@
 #! /bin/python
 
+import re
 import sys
 import argparse
 import requests
@@ -12,12 +13,17 @@ def determinePage(url):
         print('Found userpage: ' + url)
         userpage(url)
     else:
-        getpage= requests.get(url)
+        getpage= requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
         getpage_soup=BeautifulSoup(getpage.text, 'html.parser')
         items= getpage_soup.find('div', {'id':'theatre-ia-wrap'}) # Test for a videopage
         if items is not None:
-            print('Found videopage: ' + url)
-            videopage(url)
+            sronly= getpage_soup.find('div', {'class':'streamo'}) # Test for stream only
+            if sronly is not None:
+                print('Found Stream Only page: ' + url)
+                streamonlypage(url)
+            else:
+                print('Found video page: ' + url)
+                videopage(url)
         elif getpage_soup.find('div', {'class':'download-directory-listing'}) is not None:
             print('Found download page: ' + url)
             downloadpage(url)
@@ -26,18 +32,21 @@ def determinePage(url):
             userpage(url) # If it's not a userpage or videopage it's probably a collection
         
 def downloadFile(name, dl_url):
-    r=requests.get(dl_url, stream=True)
-    with open(name, 'wb') as f:
-        print("Downloading %s" % name)
-        total_length = int(r.headers.get('content-length'))
-        for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-            if chunk:
-                f.write(chunk)
-                f.flush()
-    f.close()
+    r=requests.get(dl_url, headers={'user-agent': 'archive-dl'}, stream=True)
+    if r.status_code == 200:
+        with open(name, 'wb') as f:
+            print("Downloading %s" % name)
+            total_length = int(r.headers.get('content-length'))
+            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1):
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+        f.close()
+    else:
+        print('File not found.')
 
 def downloadpage(url):
-    getpage = requests.get(url)
+    getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
     download = getpage_soup.findAll('a')    
     if verbose is True:
@@ -55,7 +64,7 @@ def findDirectories(url, download):
                 upurl = url + folder
                 if verbose is True:
                     print('Looking in ' + upurl)
-                getpage = requests.get(upurl)
+                getpage = requests.get(upurl, headers={'user-agent': 'archive-dl'}, stream=True)
                 getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
                 updownload = getpage_soup.findAll('a')
                 findFiles(upurl, updownload) # Find files in the directory
@@ -264,8 +273,31 @@ def main():
     else:
         determinePage(url)
 
+def streamonlypage(url):
+    parseurl = url.split('/')
+    game= parseurl[4]
+    gameparsed= game.split('_')
+    platform= gameparsed[0]
+    xmlurl = 'https://archive.org/download/'+game+'/'+game+'_files.xml'
+    findfile= requests.get(xmlurl, headers={'user-agent': 'archive-dl'}, stream=False)
+    if findfile.status_code != 200:
+        print('Unable to find file data')
+        return
+    findfile_soup= BeautifulSoup(findfile.text, 'xml')
+    findfile_file= findfile_soup.find('file', {'name': re.compile(r'3ds$|a78$|bin$|chd$|cso$|gba$|gb$|gbc$|iso$|mp3$|64$|nes$|sfc$|wad$|wbfs$|zip$')})
+    filename = (findfile_file.get('name'))
+
+    url = 'https://archive.org/download/'+game+'/'+filename
+
+    if yesDownload == True:
+        fileExists(filename, url)
+    elif justList == True:
+        print('Found ' + url)
+    else:
+        writeFile(url)
+
 def userpage(url):
-    getpage=requests.get(url)
+    getpage=requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup=BeautifulSoup(getpage.text, 'html.parser')
     items= getpage_soup.findAll('div', {'class':'item-ttl C C2'})
     for shows in items:

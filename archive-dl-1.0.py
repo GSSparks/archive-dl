@@ -284,7 +284,7 @@ def streamonlypage(url):
         print('Unable to find file data')
         return
     findfile_soup= BeautifulSoup(findfile.text, 'xml')
-    findfile_file= findfile_soup.find('file', {'name': re.compile(r'3ds$|a78$|bin$|chd$|cso$|gba$|gb$|gbc$|iso$|mp3$|64$|nes$|sfc$|wad$|wbfs$|zip$')})
+    findfile_file= findfile_soup.find('file', {'name': re.compile(r'3ds$|a78$|bin$|chd$|cso$|gba$|gb$|gbc$|iso$|64$|nes$|sfc$|wad$|wbfs$|zip$')})
     filename = (findfile_file.get('name'))
 
     url = 'https://archive.org/download/'+game+'/'+filename

@@ -1,0 +1,7 @@
+---
+
+ai:
+  enabled: true
+  provider: openai
+  model: gpt-4
+  tone: mentor  # or strict, friendly, playful

@@ -1,7 +1,6 @@
 #! /bin/python
 
 import re
-import sys
 import argparse
 import requests
 from urllib.parse import unquote

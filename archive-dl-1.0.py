@@ -8,16 +8,21 @@ from urllib.parse import unquote
 from clint.textui import progress
 from bs4 import BeautifulSoup
 
+
 def determinePage(url):
-    if url.find('@') >= 0: # Test for a userpage
+    if url.find('@') >= 0:  # Test for a userpage
         print('Found userpage: ' + url)
         userpage(url)
     else:
-        getpage= requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
-        getpage_soup=BeautifulSoup(getpage.text, 'html.parser')
-        items= getpage_soup.find('div', {'id':'theatre-ia-wrap'}) # Test for a videopage
+        getpage = requests.get(
+            url,
+            headers={'user-agent': 'archive-dl'},
+            stream=True
+        )
+        getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
+        items = getpage_soup.find('div', {'id':'theatre-ia-wrap'})  # Test for a videopage
         if items is not None:
-            sronly= getpage_soup.find('div', {'class':'streamo'}) # Test for stream only
+            sronly = getpage_soup.find('div', {'class':'streamo'})  # Test for stream only
             if sronly is not None:
                 print('Found Stream Only page: ' + url)
                 streamonlypage(url)
@@ -29,10 +34,11 @@ def determinePage(url):
             downloadpage(url)
         else:
             print('Maybe a collection? ' + url)
-            userpage(url) # If it's not a userpage or videopage it's probably a collection
+            userpage(url)  # If it's not a userpage or videopage it's probably a collection
         
+
 def downloadFile(name, dl_url):
-    r=requests.get(dl_url, headers={'user-agent': 'archive-dl'}, stream=True)
+    r = requests.get(dl_url, headers={'user-agent': 'archive-dl'}, stream=True)
     if r.status_code == 200:
         with open(name, 'wb') as f:
             print("Downloading %s" % name)
@@ -45,20 +51,22 @@ def downloadFile(name, dl_url):
     else:
         print('File not found.')
 
+
 def downloadpage(url):
     getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
     download = getpage_soup.findAll('a')    
     if verbose is True:
         print('Looking in ' + url)
-    findFiles(url, download) # Find files on the download page
-    findDirectories(url, download) # Look for directories
+    findFiles(url, download)  # Find files on the download page
+    findDirectories(url, download)  # Look for directories
     
+
 def findDirectories(url, download):
-    loop = True # Create a loop to search through directories if they are found
+    loop = True  # Create a loop to search through directories if they are found
     while loop is True:
         linksFound = False
-        for links in download: # Looking for directories
+        for links in download:  # Looking for directories
             folder = links.get('href')
             if folder is not None and folder.endswith('/') and folder.endswith('create/') <= 0 and folder.endswith('web/') <= 0 and folder.endswith('about/') <= 0 and folder.endswith('.org/') <= 0 and folder.endswith('projects/') <= 0 and folder.endswith('donate/') <= 0 and folder.endswith('../') <= 0:
                 upurl = url + folder
@@ -67,8 +75,8 @@ def findDirectories(url, download):
                 getpage = requests.get(upurl, headers={'user-agent': 'archive-dl'}, stream=True)
                 getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
                 updownload = getpage_soup.findAll('a')
-                findFiles(upurl, updownload) # Find files in the directory
-                linksFound = True # Continue the loop if more links are found
+                findFiles(upurl, updownload)  # Find files in the directory
+                linksFound = True  # Continue the loop if more links are found
         if linksFound is not False:
             loop = True
             download = updownload
@@ -76,6 +84,7 @@ def findDirectories(url, download):
         else:
             loop = False
     
+
 def findFiles(url, download):
     foundlist = []
     for i in download:
@@ -84,11 +93,11 @@ def findFiles(url, download):
             print('Looking at ' + dl)
         if dl is not None and yesAudio is False and dl.find('.ia.mp4') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            foundlist.append(dl.rsplit('.ia',1)[0]) # .ia.mp4 files to compare against later
-            if yesDownload == True:
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            foundlist.append(dl.rsplit('.ia',1)[0])  # .ia.mp4 files to compare against later
+            if yesDownload is True:
                 fileExists(name, dl_url)
-            elif justList == True:
+            elif justList is True:
                 print('Found ' + name)
             else:
                 writeFile(dl_url)
@@ -96,13 +105,13 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and yesAudio is False and dl.find('.mp4') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.mp4',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.mp4',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
@@ -110,13 +119,13 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and yesAudio is False and dl.find('.mkv') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.mkv',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.mkv',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
@@ -124,13 +133,13 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and yesAudio is False and dl.find('.m.k.v') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.m.k.v',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.m.k.v',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
@@ -138,13 +147,13 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and yesAudio is False and dl.find('.avi') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.avi',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.avi',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
@@ -152,13 +161,13 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and yesAudio is True and dl.find('.mp3') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.mp3',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.mp3',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
@@ -166,17 +175,18 @@ def findFiles(url, download):
         dl = i.get('href')
         if dl is not None and dl.find('.zip') >= 0:
             dl_url= url + dl
-            name=unquote(dl.rsplit('/', 1)[-1]) # Grab the name from the url
-            test=dl.rsplit('.zip',1)[0] # Test to see if file has already been grabbed
+            name=unquote(dl.rsplit('/', 1)[-1])  # Grab the name from the url
+            test=dl.rsplit('.zip',1)[0]  # Test to see if file has already been grabbed
             if test not in foundlist:
                 foundlist.append(test)
-                if yesDownload == True:
+                if yesDownload is True:
                     fileExists(name, dl_url)
-                elif justList == True:
+                elif justList is True:
                     print('Found ' + name)
                 else:
                     writeFile(dl_url)
         
+
 def fileExists(name, dl_url):
     try:
         file = open(name)
@@ -196,6 +206,7 @@ def fileExists(name, dl_url):
                 print('Yes or No?')
     except FileNotFoundError:
         downloadFile(name, dl_url)
+
 
 def getArguments():
     global url, textFile, yesDownload, justList, yesAudio, batchFile, verbose
@@ -262,6 +273,7 @@ def getArguments():
     verbose     =   results.verbose
     return
 
+
 def main():
     getArguments()
     if batchFile is True:
@@ -272,6 +284,7 @@ def main():
                 print('\n')
     else:
         determinePage(url)
+
 
 def streamonlypage(url):
     parseurl = url.split('/')
@@ -293,12 +306,13 @@ def streamonlypage(url):
 
     url = 'https://archive.org/download/'+game+'/'+filename
 
-    if yesDownload == True:
+    if yesDownload is True:
         fileExists(filename, url)
-    elif justList == True:
+    elif justList is True:
         print('Found ' + url)
     else:
         writeFile(url)
+
 
 def userpage(url):
     getpage=requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
@@ -309,6 +323,7 @@ def userpage(url):
         url= 'https://archive.org'+show+'/'
         videopage(url)
 
+
 def videopage(url):
     parseurl = url.split('/')
     folderurl = '/'.join(parseurl[4:]).rstrip('/')
@@ -316,6 +331,7 @@ def videopage(url):
     if verbose is True:
         print('Looking in ' + url)
     downloadpage(url)
+
 
 def writeFile(dl_url):
     print('Writing ' + dl_url + ' to ' + textFile)

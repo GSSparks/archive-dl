@@ -1,5 +1,16 @@
 ---
 
+rules:
+  YAMLLinter: false
+  BashLinter: false
+  TerraformModuleVersioning: false
+  DockerfileBestPractices: false
+  MissingDotfiles: false
+  PythonLinter: true
+
 ai:
   enabled: true
+  provider: openai
+  model: gpt-4
   fixer: true
+  tone: mentor  # or strict, friendly, playful

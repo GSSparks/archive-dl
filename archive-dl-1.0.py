@@ -37,7 +37,6 @@ def determinePage(url):
             userpage(url)
 
 
-
 def downloadFile(name, dl_url):
     r = requests.get(dl_url, headers={'user-agent': 'archive-dl'}, stream=True)
     if r.status_code == 200:
@@ -55,7 +54,6 @@ def downloadFile(name, dl_url):
         print('File not found.')
 
 
-
 def downloadpage(url):
     getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
@@ -64,7 +62,6 @@ def downloadpage(url):
         print('Looking in ' + url)
     findFiles(url, download)
     findDirectories(url, download)
-
 
 
 def findDirectories(url, download):
@@ -91,7 +88,6 @@ def findDirectories(url, download):
         if loop:
             download = updownload
             url = upurl
-
 
 
 def findFiles(url, download):
@@ -122,7 +118,6 @@ def findFiles(url, download):
                             writeFile(dl_url)
 
 
-
 def fileExists(name, dl_url):
     try:
         with open(name):
@@ -140,7 +135,6 @@ def fileExists(name, dl_url):
                 print('Yes or No?')
     except FileNotFoundError:
         downloadFile(name, dl_url)
-
 
 
 def getArguments():
@@ -174,7 +168,6 @@ def getArguments():
     verbose = results.verbose
 
 
-
 def main():
     getArguments()
     if batchFile:
@@ -185,7 +178,6 @@ def main():
                 print('\n')
     else:
         determinePage(url)
-
 
 
 def streamonlypage(url):
@@ -220,7 +212,6 @@ def streamonlypage(url):
         writeFile(url)
 
 
-
 def userpage(url):
     getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
@@ -231,7 +222,6 @@ def userpage(url):
         videopage(url)
 
 
-
 def videopage(url):
     parseurl = url.split('/')
     folderurl = '/'.join(parseurl[4:]).rstrip('/')
@@ -239,7 +229,6 @@ def videopage(url):
     if verbose:
         print('Looking in ' + url)
     downloadpage(url)
-
 
 
 def writeFile(dl_url):

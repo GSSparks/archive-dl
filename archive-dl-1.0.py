@@ -8,6 +8,7 @@ from urllib.parse import unquote
 from clint.textui import progress
 from bs4 import BeautifulSoup
 
+
 def determinePage(url):
     if '@' in url:
         print('Found userpage: ' + url)
@@ -35,6 +36,8 @@ def determinePage(url):
             print('Maybe a collection? ' + url)
             userpage(url)
 
+
+
 def downloadFile(name, dl_url):
     r = requests.get(dl_url, headers={'user-agent': 'archive-dl'}, stream=True)
     if r.status_code == 200:
@@ -51,6 +54,8 @@ def downloadFile(name, dl_url):
     else:
         print('File not found.')
 
+
+
 def downloadpage(url):
     getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
@@ -59,6 +64,8 @@ def downloadpage(url):
         print('Looking in ' + url)
     findFiles(url, download)
     findDirectories(url, download)
+
+
 
 def findDirectories(url, download):
     loop = True
@@ -84,6 +91,8 @@ def findDirectories(url, download):
         if loop:
             download = updownload
             url = upurl
+
+
 
 def findFiles(url, download):
     foundlist = []
@@ -112,6 +121,8 @@ def findFiles(url, download):
                         else:
                             writeFile(dl_url)
 
+
+
 def fileExists(name, dl_url):
     try:
         with open(name):
@@ -129,6 +140,8 @@ def fileExists(name, dl_url):
                 print('Yes or No?')
     except FileNotFoundError:
         downloadFile(name, dl_url)
+
+
 
 def getArguments():
     global url, textFile, yesDownload, justList, yesAudio, batchFile, verbose
@@ -160,6 +173,8 @@ def getArguments():
     batchFile = results.batchFile
     verbose = results.verbose
 
+
+
 def main():
     getArguments()
     if batchFile:
@@ -171,10 +186,11 @@ def main():
     else:
         determinePage(url)
 
+
+
 def streamonlypage(url):
     parseurl = url.split('/')
     game = parseurl[4]
-    gameparsed = game.split('_')
     xmlurl = f'https://archive.org/download/{game}/{game}_files.xml'
     findfile = requests.get(xmlurl, headers={'user-agent': 'archive-dl'}, stream=False)
     if findfile.status_code != 200:
@@ -203,6 +219,8 @@ def streamonlypage(url):
     else:
         writeFile(url)
 
+
+
 def userpage(url):
     getpage = requests.get(url, headers={'user-agent': 'archive-dl'}, stream=True)
     getpage_soup = BeautifulSoup(getpage.text, 'html.parser')
@@ -212,6 +230,8 @@ def userpage(url):
         url = 'https://archive.org' + show + '/'
         videopage(url)
 
+
+
 def videopage(url):
     parseurl = url.split('/')
     folderurl = '/'.join(parseurl[4:]).rstrip('/')
@@ -220,10 +240,13 @@ def videopage(url):
         print('Looking in ' + url)
     downloadpage(url)
 
+
+
 def writeFile(dl_url):
     print('Writing ' + dl_url + ' to ' + textFile)
     with open(textFile, "a") as f:
         f.write(dl_url + "\n")
+
 
 if __name__ == "__main__":
     main()
